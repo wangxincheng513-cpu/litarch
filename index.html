@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中国文学原型·灵魂图谱</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/theme-chalk/dist/index.css"></script>
+    <script src="https://unpkg.com/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #c9a227;
+            --primary-red: #8b0000;
+            --ink-black: #1a1a1a;
+            --parchment: #f5f0e6;
+            --parchment-dark: #e8dcc8;
+            --text-ink: #2c2416;
+            --accent-vermilion: #d4380d;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Noto Sans SC', 'Noto Serif SC', serif;
+            background: var(--parchment);
+            color: var(--text-ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 水墨背景 */
+        .ink-wash-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .wash {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+        }
+        
+        .wash-1 {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, #8b0000 0%, transparent 70%);
+            top: -200px; right: -100px;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        .wash-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #c9a227 0%, transparent 70%);
+            bottom: -150px; left: -100px;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+        
+        .wash-3 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #2c2416 0%, transparent 70%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.08; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.15; transform: translate(-50%, -50%) scale(1.1); }
+        }
+        
+        /* 主容器 */
+        #app {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+        
+        /* 欢迎页 */
+        .welcome-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .welcome-page h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--ink-black);
+            margin-bottom: 10px;
+            letter-spacing: 0.3em;
+        }
+        
+        .welcome-page .subtitle {
+            font-size: 1.2rem;
+            color: var(--primary-red);
+            margin-bottom: 40px;
+            letter-spacing: 0.5em;
+        }
+        
+        .welcome-page .intro-text {
+            max-width: 700px;
+            font-size: 1.1rem;
+            line-height: 2;
+            color: var(--text-ink);
+            margin-bottom: 50px;
+            text-align: justify;
+            text-indent: 2em;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stat-icon { font-size: 1.8rem; }
+        .stat-label { font-size: 0.95rem; color: #666; }
+        
+        .archetypes-preview {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .archetype-tag {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, var(--ink-black) 0%, #333 100%);
+            color: var(--primary-gold);
+            border-radius: 20px;
+            font-size: 0.95rem;
+            border: 1px solid var(--primary-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .archetype-tag:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(201, 162, 39, 0.3);
+        }
+        
+        .start-btn {
+            padding: 18px 60px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, var(--primary-red) 0%, #a00000 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Noto Serif SC', serif;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(139, 0, 0, 0.3);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(139, 0, 0, 0.4);
+        }
+        
+        .notice-text {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        /* 答题页 */
+        .questionnaire-wrap {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--ink-black);
+        }
+        
+        .test-title-badge {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--ink-black);
+            letter-spacing: 0.1em;
+        }
+        
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .progress-text {
+            font-size: 1rem;
+            color: var(--primary-red);
+            font-weight: 600;
+            min-width: 60px;
+        }
+        
+        .progress-track {
+            width: 200px;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-red), var(--primary-gold));
+            transition: width 0.3s ease;
+        }
+        
+        .question-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .question-num {
+            font-size: 1rem;
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: var(--ink-black);
+            margin-bottom: 30px;
+            font-family: 'Noto Serif SC', serif;
+        }
+        
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .option-btn {
+            padding: 18px 25px;
+            background: var(--parchment);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            text-align: left;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        
+        .option-btn:hover {
+            background: var(--parchment-dark);
+            border-color: var(--primary-gold);
+        }
+        
+        .option-btn.selected {
+            background: linear-gradient(135deg, var(--ink-black) 0%, #333 100%);
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+        
+        .opt-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            margin-top: 12px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .option-btn.selected .opt-dot {
+            background: var(--primary-gold);
+            box-shadow: 0 0 10px var(--primary-gold);
+        }
+        
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .nav-btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: var(--parchment-dark);
+            border: 2px solid var(--ink-black);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: var(--ink-black);
+            color: #fff;
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .nav-btn.next-btn {
+            background: var(--primary-red);
+            color: #fff;
+            border-color: var(--primary-red);
+        }
+        
+        .nav-btn.next-btn:hover:not(:disabled) {
+            background: #a00000;
+        }
+        
+        /* 结果页 */
+        .result-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .result-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .result-icon { font-size: 3rem; margin-bottom: 20px; }
+        
+        .result-title {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 15px;
+            letter-spacing: 0.3em;
+        }
+        
+        .result-main-archetype {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(139, 0, 0, 0.2);
+        }
+        
+        .result-subtitle {
+            font-size: 1.5rem;
+            color: var(--primary-gold);
+            letter-spacing: 0.5em;
+        }
+        
+        .result-tags {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .result-tag {
+            padding: 8px 20px;
+            background: var(--ink-black);
+            color: var(--primary-gold);
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .radar-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--ink-black);
+            margin-bottom: 30px;
+            letter-spacing: 0.2em;
+        }
+        
+        #radarChart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .score-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--parchment);
+            border-radius: 8px;
+        }
+        
+        .score-label {
+            font-size: 1rem;
+            color: var(--ink-black);
+            margin-bottom: 8px;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-red);
+        }
+        
+        .soul-portrait {
+            background: linear-gradient(135deg, var(--ink-black) 0%, #2a2a2a 100%);
+            color: #e8dcc8;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .soul-portrait::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, var(--primary-gold) 0%, transparent 70%);
+            opacity: 0.1;
+        }
+        
+        .soul-portrait h3 {
+            font-size: 1.3rem;
+            color: var(--primary-gold);
+            margin-bottom: 20px;
+            letter-spacing: 0.2em;
+            text-align: center;
+        }
+        
+        .soul-portrait p {
+            font-size: 1.1rem;
+            line-height: 2;
+            text-align: justify;
+            text-indent: 2em;
+        }
+        
+        .insight-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .insight-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .insight-card h4 {
+            font-size: 1.1rem;
+            color: var(--primary-red);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-card p {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-ink);
+        }
+        
+        .literary-companions {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .companion-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .companion-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .companion-name {
+            font-size: 1.1rem;
+            color: var(--primary-gold);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .companion-quote {
+            font-size: 1rem;
+            color: var(--text-ink);
+            font-style: italic;
+            line-height: 1.8;
+        }
+        
+        .combo-section {
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #a08020 100%);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .combo-label {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 10px;
+        }
+        
+        .combo-main {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .combo-nickname {
+            font-size: 2.5rem;
+            color: var(--ink-black);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .combo-desc {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.8;
+        }
+        
+        .shadow-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .shadow-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .shadow-archetype {
+            font-size: 1.3rem;
+            color: var(--primary-red);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .shadow-desc {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-ink);
+        }
+        
+        .quote-section {
+            text-align: center;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .quote-text {
+            font-size: 1.5rem;
+            color: var(--ink-black);
+            line-height: 2;
+            font-family: 'Noto Serif SC', serif;
+            margin-bottom: 20px;
+        }
+        
+        .share-section {
+            text-align: center;
+            padding: 30px;
+            background: var(--ink-black);
+            border-radius: 12px;
+            color: var(--primary-gold);
+        }
+        
+        @media (max-width: 768px) {
+            .welcome-page h1 { font-size: 1.8rem; }
+            .welcome-page .subtitle { font-size: 1rem; }
+            .stats-bar { gap: 30px; }
+            .archetypes-preview { gap: 10px; }
+            .archetype-tag { padding: 6px 15px; font-size: 0.85rem; }
+            .progress-track { width: 120px; }
+            .question-card { padding: 25px; }
+            .question-text { font-size: 1.1rem; }
+            .option-btn { padding: 15px; font-size: 0.95rem; }
+            .insight-cards { grid-template-columns: 1fr; }
+            .scores-grid { grid-template-columns: repeat(2, 1fr); }
+            .result-main-archetype { font-size: 2.5rem; }
+            #radarChart { height: 300px; }
+        }
+        
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-up-enter-active { transition: all 0.5s ease; }
+        .slide-up-enter-from { opacity: 0; transform: translateY(30px); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="ink-wash-bg">
+            <div class="wash wash-1"></div>
+            <div class="wash wash-2"></div>
+            <div class="wash wash-3"></div>
+        </div>
+        
+        <transition name="fade" mode="out-in">
+            <!-- 欢迎页 -->
+            <div v-if="currentPage === 'welcome'" class="welcome-page" key="welcome">
+                <h1>中国文学原型</h1>
+                <p class="subtitle">· 灵魂图谱测试 ·</p>
+                <p class="intro-text">
+                    千年笔墨之中，暗藏着每个中国人灵魂的密码。你是庙堂之上以死相谏的孤臣，还是江湖之远仗剑天涯的侠客？你向往羽化登仙的超脱，还是甘愿做红尘中至死不渝的痴人？
+                    <br><br>
+                    以下 36 道意象与情境之题，无关对错，只凭直觉。放下现实身份，听从内心的第一声回响——我们将为你绘制一份专属的灵魂图谱。
+                </p>
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-icon">📜</span>
+                        <span class="stat-label">36 道情境题</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⏳</span>
+                        <span class="stat-label">约 8 分钟</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🎭</span>
+                        <span class="stat-label">六大原型</span>
+                    </div>
+                </div>
+                <div class="archetypes-preview">
+                    <span class="archetype-tag">隐士</span>
+                    <span class="archetype-tag">游侠</span>
+                    <span class="archetype-tag">诤臣</span>
+                    <span class="archetype-tag">名士</span>
+                    <span class="archetype-tag">谪仙</span>
+                    <span class="archetype-tag">情痴</span>
+                </div>
+                <button class="start-btn" @click="startTest">✦ 开始探寻灵魂原型</button>
+                <p class="notice-text">
+                    📌 请选择最符合直觉的答案，无需过多思考<br>
+                    📌 每个选项均无优劣之分，只有最契合你的选项
+                </p>
+            </div>
+            
+            <!-- 答题页 -->
+            <div v-else-if="currentPage === 'questionnaire'" class="questionnaire-wrap" key="questionnaire">
+                <div class="top-bar">
+                    <div class="test-title-badge">中国文学原型·灵魂图谱</div>
+                    <div class="progress-area">
+                        <span class="progress-text">{{ currentQuestionIndex + 1 }} / {{ questions.length }}</span>
+                        <div class="progress-track">
+                            <div class="progress-fill" :style="{ width: ((currentQuestionIndex + 1) / questions.length * 100) + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <div class="question-num">第 {{ currentQuestionIndex + 1 }} 题</div>
+                    <p class="question-text">{{ questions[currentQuestionIndex].question }}</p>
+                    <div class="options-list">
+                        <button 
+                            v-for="(option, idx) in questions[currentQuestionIndex].options" 
+                            :key="idx"
+                            class="option-btn"
+                            :class="{ selected: answers[currentQuestionIndex] === idx }"
+                            @click="selectAnswer(idx)"
+                        >
+                            <span class="opt-dot"></span>
+                            <span class="opt-label">{{ option }}</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="nav-bar">
+                    <button class="nav-btn" :disabled="currentQuestionIndex === 0" @click="prevQuestion">← 上一题</button>
+                    <button 
+                        v-if="currentQuestionIndex < questions.length - 1" 
+                        class="nav-btn next-btn" 
+                        :disabled="answers[currentQuestionIndex] === null"
+                        @click="nextQuestion"
+                    >下一题 →</button>
+                    <button 
+                        v-else 
+                        class="nav-btn next-btn" 
+                        :disabled="!allAnswered"
+                        @click="submitTest"
+                    >✦ 绘制灵魂图谱</button>
+                </div>
+            </div>
+            
+            <!-- 结果页 -->
+            <div v-else-if="currentPage === 'result'" class="result-page" key="result">
+                <div class="result-header">
+                    <div class="result-icon">⚔️</div>
+                    <p class="result-title">你的文学灵魂原型是</p>
+                    <h1 class="result-main-archetype">{{ result.primary }}</h1>
+                    <p class="result-subtitle">· {{ result.subtitle }} ·</p>
+                    <div class="result-tags">
+                        <span v-for="tag in result.tags" class="result-tag">{{ tag }}</span>
+                    </div>
+                </div>
+                
+                <div class="radar-section">
+                    <h3 class="section-title">— 六维灵魂图谱 —</h3>
+                    <div id="radarChart"></div>
+                    <div class="scores-grid">
+                        <div v-for="(score, arch) in result.scores" :key="arch" class="score-item">
+                            <div class="score-label">{{ arch }}</div>
+                            <div class="score-value">{{ score }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="soul-portrait">
+                    <h3>— 灵魂画像 —</h3>
+                    <p>{{ result.portrait }}</p>
+                </div>
+                
+                <div class="insight-cards">
+                    <div class="insight-card">
+                        <h4>🌀 核心困境</h4>
+                        <p>{{ result.dilemma }}</p>
+                    </div>
+                    <div class="insight-card">
+                        <h4>🗝️ 破局之法</h4>
+                        <p>{{ result.solution }}</p>
+                    </div>
+                </div>
+                
+                <div class="literary-companions">
+                    <h3 class="section-title">— 你的文学知音 —</h3>
+                    <div v-for="companion in result.companions" :key="companion.name" class="companion-item">
+                        <div class="companion-name">— {{ companion.name }}</div>
+                        <blockquote class="companion-quote">"{{ companion.quote }}"</blockquote>
+                    </div>
+                </div>
+                
+                <div class="combo-section">
+                    <p class="combo-label">— 灵魂组合解读 —</p>
+                    <p class="combo-main">{{ result.primary }} × {{ result.secondary }}</p>
+                    <p class="combo-nickname">「 {{ result.comboNickname }} 」</p>
+                    <p class="combo-desc">{{ result.comboDesc }}</p>
+                </div>
+                
+                <div class="shadow-section">
+                    <h3 class="section-title">— 暗影原型洞察 —</h3>
+                    <p class="shadow-label">暗影 · {{ result.shadow }}</p>
+                    <p class="shadow-archetype">{{ result.shadowTitle }}</p>
+                    <p class="shadow-desc">{{ result.shadowDesc }}</p>
+                </div>
+                
+                <div class="quote-section">
+                    <blockquote class="quote-text">✦ {{ result.quote }} ✦</blockquote>
+                </div>
+                
+                <div class="share-section">
+                    <p>我的文学灵魂原型是【{{ result.primary }}】，灵魂深处还藏着【{{ result.secondary }}】。</p>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, nextTick } = Vue;
+        
+        // 36道题目数据
+        const questionsData = [
+            { question: "若能拥有一处不受时空束缚的住所，你会选择？", options: ["白云深处的草庐，只闻鸟鸣与溪流。", "闹市深巷里的百年老宅，身处喧嚣却自有清净。", "不需要固定居所，一匹快马一柄剑，天地即是家。", "烽火连天的关隘营帐，守护身后万家灯火。"], archetype: ["隐士", "名士", "游侠", "诤臣"] },
+            { question: "遭遇人生中极大的不公时，你本能的反应是？", options: ["冷笑一声拂袖而去——这世道不值得留恋。", "默默离开，到山水之间让愤怒自行消散。", "咬牙忍耐，只为有朝一日正本清源。", "即使以卵击石，也要亲手讨回一个公道。"], archetype: ["谪仙", "隐士", "诤臣", "游侠"] },
+            { question: "大雪纷飞的夜晚独自饮酒，你脑海中浮现的是？", options: ["曾与你对饮的那个人，如今已天人永隔。", "此等雪景百年难遇，值得赋诗一首以记之。", "远方戍边的将士，不知今夜是否有棉衣御寒。", "天地苍茫，人不过是宇宙间的一粒微尘。"], archetype: ["情痴", "名士", "诤臣", "谪仙"] },
+            { question: "偶然得到一册失传已久的古籍，你最希望其中记载的是？", options: ["安邦治世的良策与大道。", "白日飞升、跳出轮回的修炼秘法。", "起死回生、重续前缘的奇术。", "一部绝世琴谱或失传的绝美诗集。"], archetype: ["诤臣", "谪仙", "情痴", "名士"] },
+            { question: "亲眼目睹权贵当街欺凌百姓，你虽无权无势，会怎么做？", options: ["冷笑不语，回去写一篇讽刺文章传遍天下。", "当场挺身而出，据理力争，哪怕挨打受罚。", "默记在心，日后定要让这权贵付出代价。", "化身一阵怪风戏弄权贵一番，随后飘然远去。"], archetype: ["名士", "诤臣", "游侠", "隐士"] },
+            { question: "若必须牺牲一样东西来换取天下太平，你愿意放弃？", options: ["我一生闲云野鹤的自由。", "我苦练多年的绝世武艺。", "我不信这种交易——什么都不换。", "我的性命乃至千古骂名。"], archetype: ["隐士", "游侠", "谪仙", "诤臣"] },
+            { question: "月圆之夜独坐庭院，你最想做的事是？", options: ["对月弹琴，任旋律化作清风飘向远方。", "举杯邀月，觉得月亮才是唯一懂你的知己。", "翻出旧地图，规划下一次仗剑远行的路线。", "想起远方的那个人，提笔写一封永远不会寄出的信。"], archetype: ["名士", "隐士", "游侠", "情痴"] },
+            { question: "你希望后人如何评价你的一生？", options: ["\"事了拂衣去，深藏身与名。\"", "\"鞠躬尽瘁，死而后已。\"", "\"此人至情至性，来过、爱过、无怨无悔。\"", "最好没人评价，像一阵风来过便散了。"], archetype: ["游侠", "诤臣", "情痴", "隐士"] },
+            { question: "在反复出现的梦境里，你最常回到的场景是？", options: ["光怪陆离的天宫，你本不是凡间之物。", "金戈铁马，那个未完成的宏图霸业。", "三生石畔，你为一株仙草日日浇灌甘露。", "竹林深处，三五好友围炉煮茶、纵论古今。"], archetype: ["谪仙", "游侠", "情痴", "名士"] },
+            { question: "好友即将远行，你会赠送什么作为临别信物？", options: ["一枝亲手折下的带露梅花，聊寄相思。", "一卷亲手抄录的先贤经典，望他不忘初心。", "一柄防身的短剑，愿他一路平安。", "一壶好酒或一张古琴——聚散皆是缘。"], archetype: ["情痴", "诤臣", "游侠", "名士"] },
+            { question: "若有一次改写历史的机会，你最想做什么？", options: ["阻止一场生灵涂炭的战争。", "历史不过是一场大梦，改与不改又有何异？", "打碎一切枷锁，让天下人皆得自由。", "让一对被迫分离的有情人终成眷属。"], archetype: ["诤臣", "谪仙", "游侠", "情痴"] },
+            { question: "深山中偶遇一位白发老者，他说可以教你一样本领，你选？", options: ["一手出神入化的丹青笔法，画尽天下山水。", "观天象知兴衰的星象术，洞察王朝气运。", "悬壶济世的医术，从此行走天下救死扶伤。", "御风飞行之术，从此不受尘世羁绊。"], archetype: ["名士", "谪仙", "诤臣", "隐士"] },
+            { question: "听闻你最欣赏的知己骤然离世，你的第一反应是？", options: ["提剑找到害他之人，以血还血。", "在他坟前奏最后一曲，然后亲手砸碎瑶琴。", "痛哭到呕血，此生再无人懂你。", "接过他的遗志，走完他没走完的路。"], archetype: ["游侠", "名士", "情痴", "诤臣"] },
+            { question: "你认为世间最珍贵的东西是什么？", options: ["穿越生死、不离不弃的一段深情。", "能让万民安居乐业的治世之才。", "随时可以起身离去的自在与洒脱。", "通达宇宙本源、看破生死轮回的智慧。"], archetype: ["情痴", "诤臣", "隐士", "谪仙"] },
+            { question: "陷入四面楚歌的绝境，你会如何面对？", options: ["拔剑横颈，死也要保住最后的尊严。", "拼尽最后一口气突围，绝不束手就擒。", "点燃营帐，与围困之敌同归于尽。", "闭目端坐，坦然接受命运的安排。"], archetype: ["游侠", "游侠", "诤臣", "隐士"] },
+            { question: "以下花草意象，哪一种最触动你？", options: ["野火烧不尽、春风吹又生的原上草。", "出淤泥而不染的莲花。", "凌寒独自绽放的腊梅。", "零落成泥碾作尘、只有香如故的落红。"], archetype: ["游侠", "谪仙", "隐士", "情痴"] },
+            { question: "在你看来，执笔书写最深层的意义是什么？", options: ["以文载道，警醒世人，流传千古。", "以墨为符，与另一个维度的存在对话。", "倾诉那些无法宣之于口的幽微情感。", "把玩文字的音韵与色彩，本身就是一种游戏。"], archetype: ["诤臣", "谪仙", "情痴", "名士"] },
+            { question: "深夜忽闻远处传来一阵箫声，你直觉那是？", options: ["江湖夜雨中某位孤独过客的自白。", "深闺中人幽怨缠绵的相思。", "天上仙人思念故土的叹息。", "亡国遗民的悲歌，山河犹在人事已非。"], archetype: ["游侠", "情痴", "谪仙", "诤臣"] },
+            { question: "假如被迫入朝为官，你最无法忍受的是？", options: ["条条框框，不能用自己的方式惩恶扬善。", "尔虞我诈，必须违背良心说假话。", "繁文缛节，不能率性而为。", "案牍劳形，再也看不到山川湖海。"], archetype: ["游侠", "诤臣", "名士", "隐士"] },
+            { question: "你心目中\"完美的一天\"以什么画面结束？", options: ["终于为含冤多年的百姓翻了案。", "深山禅院中最后一声晚钟余韵悠长。", "酩酊大醉，在月光下舞剑至力竭倒地。", "和最爱的人剪烛西窗，共话巴山夜雨。"], archetype: ["诤臣", "隐士", "游侠", "情痴"] },
+            { question: "在一家古董店看到一面蒙尘旧镜，你觉得它能映出什么？", options: ["你前世非人的真实面目。", "那个你日夜等候却始终未归之人的容颜。", "你内心最深处不敢面对的恐惧与渴望。", "未来的天下大势与王朝兴衰。"], archetype: ["谪仙", "情痴", "隐士", "诤臣"] },
+            { question: "存在一种名叫\"忘情\"的毒药，喝下后再无悲喜，你的选择是？", options: ["毫不犹豫饮下——唯大道值得追求。", "绝不喝——情，是活着的唯一证据。", "若能让我处理政务更加冷静，那就喝。", "将它倒掉——没有悲喜便无法感知美。"], archetype: ["谪仙", "情痴", "诤臣", "名士"] },
+            { question: "面对一位极其迂腐固执的长辈，你会？", options: ["懒得废话，直接用行动证明他是错的。", "当面嘲讽他的陈腐，然后扬长而去。", "旁征博引，试图以道理说服他。", "表面应承，转头照旧我行我素。"], archetype: ["游侠", "名士", "诤臣", "隐士"] },
+            { question: "你被困在一座迷雾笼罩的古城中，会怎样应对？", options: ["抽刀在手，沿着城墙一路向前——总有出口。", "找一处安静的角落坐下，等迷雾自行散去。", "登上最高的城楼，观察地形，制定脱困方略。", "深吸一口气，闭目冥想，感知迷雾的本质。"], archetype: ["游侠", "隐士", "诤臣", "谪仙"] },
+            { question: "春日落花铺满小径，你会怎么做？", options: ["扫起煮茶，落花入盏也是一种风雅。", "施一道回春术，让它们飞回枝头重新绽放。", "收入锦囊，掘土葬花，洒泪而去。", "任它归于泥土，这本就是天地常道。"], archetype: ["名士", "谪仙", "情痴", "隐士"] },
+            { question: "别人最常用哪个词来误解你？", options: ["\"狂妄\"——其实你只是才华无处安放。", "\"冲动\"——其实你只是不愿违背本心。", "\"冷漠\"——其实你只是不想卷入纷争。", "\"迂腐\"——其实你只是坚守心中底线。"], archetype: ["名士", "游侠", "隐士", "诤臣"] },
+            { question: "你认为英雄最终的宿命通常是什么？", options: ["被庸碌之人误解，最终含恨收场。", "功成身退，从此隐于江湖所知踪。", "所谓英雄不过是世人编造的童话，终归虚无。", "被一段刻骨铭心的感情绊住了脚步。"], archetype: ["诤臣", "游侠", "谪仙", "情痴"] },
+            { question: "被贬谪到荒僻之地，你的日常状态会是？", options: ["暗中联络当地义士，保护流民不受欺凌。", "遍访奇花异草，写下一部博物志。", "开荒种田，与乡邻打成一片，怡然自乐。", "日日上书朝廷，不惜再触龙颜。"], archetype: ["游侠", "名士", "隐士", "诤臣"] },
+            { question: "出席一场奢华的宫廷夜宴，你的举动是？", options: ["举杯应对，诗才惊艳四座，成为全场焦点。", "觉得无趣至极，灵魂已出窍游历仙山去了。", "暗自计算这场宴席耗费了多少民脂民膏。", "趁人不备溜出宴厅，翻上屋顶独赏月色。"], archetype: ["名士", "谪仙", "诤臣", "隐士"] },
+            { question: "一位陌生人请你用一个字总结人生，你会写？", options: ["\"义\"——人活一世，当有所为有所不为。", "\"情\"——无情何必生斯世。", "\"梦\"——人生不过黄粱一梦。", "\"道\"——万物运行皆有其理。"], archetype: ["游侠", "情痴", "谪仙", "隐士"] },
+            { question: "经过一座荒废的古寺，里面有一尊无头神像，你的反应是？", options: ["不以为意，当晚就借宿寺中，升起篝火取暖。", "觉得残缺的神像反而有一种荒诞的美感。", "感叹信仰凋零，顺手清理寺前杂草。", "闭目在神像前静坐，试着感应残存的灵力。"], archetype: ["游侠", "名士", "诤臣", "谪仙"] },
+            { question: "当你白发苍苍，你最希望身边有什么陪伴？", options: ["桃李满天下的学生与自己一生的著作。", "那把跟随你半生、早已生锈的旧刀。", "什么都不需要，独坐窗前，心如止水。", "年轻时那个唯一真正懂你的人。"], archetype: ["诤臣", "游侠", "隐士", "情痴"] },
+            { question: "在山中迷路，天色将暗，远处有两条路——一条通向村庄灯火，一条通向更深的山林，你会？", options: ["走向村庄，人间的烟火气让你安心。", "索性不走了，就地露宿，与星月为伴。", "走向深山，越是人迹罕至越让你兴奋。", "凭直觉选一条——迷路本身也许就是一种指引。"], archetype: ["名士", "隐士", "游侠", "谪仙"] },
+            { question: "弥留之际，你最想留下的遗言是？", options: ["\"终于要回天上去了，这副皮囊且留给大地。\"", "\"我来过这红尘，虽苦，却也绚烂至极。\"", "\"天下兴亡之事已与我无关，唯愿海晏河清。\"", "\"将我骨灰撒入大江，随波而去便好。\""], archetype: ["谪仙", "情痴", "诤臣", "隐士"] },
+            { question: "如果你能与古人对饮一夜，你最想找谁？", options: ["陶渊明——在他的菊花田里喝到天亮。", "苏轼——既能谈诗论画，又能聊聊东坡肉的做法。", "荆轲——听他讲那场壮烈的刺秦往事。", "李清照——与她共饮，谈尽人间悲欢离合。"], archetype: ["隐士", "名士", "游侠", "情痴"] },
+            { question: "如果有来生，你希望化身为？", options: ["一棵扎根悬崖绝壁的千年古松。", "一只翱翔于九天之上的鲲鹏。", "盛世之中一个写下最美诗篇的无名词人。", "一把专斩不平之事的无名铁剑。"], archetype: ["隐士", "谪仙", "名士", "游侠"] }
+        ];
+        
+        // 原型数据
+        const archetypesData = {
+            "隐士": { subtitle: "山水田园", tags: ["超脱", "智慧", "淡泊"], portrait: "你的人生坐标不在庙堂，而在山水之间。你向往的是\"采菊东篱下，悠然见南山\"的逍遥生活。隐士不是逃避，而是另一种选择——以退为进，在自然的怀抱中寻找生命的真谛。你的内心深处有一片净土，那里没有世俗的纷扰，只有风轻云淡。", dilemma: "你常常在归隐与入世之间徘徊。现实的责任与内心的向往形成拉扯，让你难以完全放下。", solution: "真正的隐士不是远离尘世，而是在心中修篱种菊。无论身处何地，保持内心的宁静才是真正的归隐。", companions: [{ name: "陶渊明", quote: "归去来兮，田园将芜胡不归？" }, { name: "林逋", quote: "梅妻鹤子，疏影横斜水清浅。" }], comboNickname: "山中高士", comboDesc: "你既向往隐士的超脱，又保持名士的风雅。在世俗与山林之间找到了独特的平衡点。", shadow: "名士", shadowTitle: "孤独的清醒者", shadowDesc: "你有时会感到与世俗格格不入，这种孤独感可能让你显得冷漠或疏离。", quote: "行到水穷处，坐看云起时。" },
+            "游侠": { subtitle: "江湖孤剑", tags: ["自由", "正义", "义气"], portrait: "你的血液里住着一匹永远无法被驯服的野马。规则在你眼中不过是墙——如果墙挡住了正义的路，你宁愿亲手推翻它。你不屑于在体制内苦苦周旋，更愿意用最直接的方式去改变你看不惯的一切。你重情重义，却也习惯独来独往，因为你知道——自由的代价就是孤独。", dilemma: "你拥有极度纯粹的理想主义和一腔热血，但现实往往充满灰度。当你的直率和冲动撞上复杂的社会规则时，愤懑与挫败感如影随形。", solution: "保护好你内心的火焰，但不要轻易点燃整座森林。在这个规则交织的现代社会，学会\"智取\"比单纯的\"强攻\"更具力量。", companions: [{ name: "李白", quote: "十步杀一人，千里不留行。事了拂衣去，深藏身与名。" }, { name: "荆轲（司马迁笔下）", quote: "风萧萧兮易水寒，壮士一去兮不复还。" }, { name: "辛弃疾", quote: "醉里挑灯看剑，梦回吹角连营。" }], comboNickname: "浪子诗人", comboDesc: "你的江湖不只有刀光剑影，还有诗酒风流与月下独酌。", shadow: "情痴", shadowTitle: "情感封闭者", shadowDesc: "你对深度的情感联结保持距离——可能因为曾受伤，也可能因为害怕失控。", quote: "纵死侠骨香，不惭世上英。" },
+            "诤臣": { subtitle: "庙堂孤谏", tags: ["忠诚", "正直", "勇气"], portrait: "你相信\"良药苦口利于病，忠言逆耳利于行\"。在你的价值观里，真理比性命更重要。为了坚持正确的立场，你宁可触怒权贵，甚至付出惨痛的代价。你不是不知道变通，而是觉得有些底线不能动摇。", dilemma: "你的正直往往让你在职场和人际关系中举步维艰。你会发现，为什么坚持对的事情却要付出这么多代价？", solution: "学会在坚持与变通之间找到平衡。有时候，曲线救国比直线冲刺更能实现目标。", companions: [{ name: "魏征", quote: "兼听则明，偏信则暗。" }, { name: "海瑞", quote: "天地正气，江河日月经天。" }, { name: "杜甫", quote: "安得广厦千万间，大庇天下寒士俱欢颜。" }], comboNickname: "孤臣", comboDesc: "你兼具诤臣的正直和隐士的智慧，懂得何时该坚持，何时该退让。", shadow: "游侠", shadowTitle: "愤怒的表达者", shadowDesc: "当你感到不公时，内心的愤怒可能会以激烈的方式爆发出来。", quote: "苟利国家生死以，岂因祸福避趋之。" },
+            "名士": { subtitle: "风流失韵", tags: ["才华", "风流", "浪漫"], portrait: "你是那种\"才子佳人\"式的存在。你的生活中不能没有美——无论是诗酒花香，还是月下独酌。你追求的是生命的质量而非长度，是瞬间的绚烂而非永恒的平淡。", dilemma: "你的浪漫主义有时会让你逃避现实的责任。你会发现，才华横溢并不能解决所有问题。", solution: "在追求精神高度的同时，也学会接地气。真正的名士，既能阳春白雪，也能下里巴人。", companions: [{ name: "苏轼", quote: "大江东去，浪淘尽，千古风流人物。" }, { name: "唐伯虎", quote: "别人笑我太疯癫，我笑他人看不穿。" }, { name: "李清照", quote: "寻寻觅觅，冷冷清清，凄凄惨惨戚戚。" }], comboNickname: "风流才子", comboDesc: "你的名士气质中藏着游侠的洒脱，兼具隐士的智慧。", shadow: "情痴", shadowTitle: "深情的浪漫主义者", shadowDesc: "你对感情的追求有时过于理想化，这种执念可能让你在现实中受伤。", quote: "人生得意须尽欢，莫使金樽空对月。" },
+            "谪仙": { subtitle: "凡间散人", tags: ["超脱", "神秘", "智慧"], portrait: "你总觉得自己不属于这个凡间。你的思维方式、你的审美取向，都带着一种\"非人\"的特质。你追求的是宇宙的终极真理，是超越生死的智慧。", dilemma: "你的超然有时会让自己显得与现实脱节。你会发现，\"看破红尘\"并不能解决\"身在红尘\"的问题。", solution: "接地气不是妥协，而是修行。真正的智慧，是在红尘中炼心，而非逃离红尘。", companions: [{ name: "吕洞宾", quote: "朝游北海暮苍梧，袖里青蛇胆气粗。" }, { name: "庄子", quote: "北冥有鱼，其名为鲲。" }, { name: "李白", quote: "花间一壶酒，独酌无相亲。举杯邀明月，对影成三人。" }], comboNickname: "谪仙人", comboDesc: "你既有着谪仙的超脱，又保持着对红尘的眷恋。", shadow: "隐士", shadowTitle: "逃避现实者", shadowDesc: "你有时会用\"看透\"来逃避应尽的责任，这种态度可能影响你的人生进程。", quote: "醉后不知天在水，满船清梦压星河。" },
+            "情痴": { subtitle: "红尘相思", tags: ["深情", "执着", "热烈"], portrait: "你是那种\"问世间情为何物，直教人生死相许\"的类型。在你的世界里，爱是最重要的事。你可以为了爱放弃一切，包括生命。你对感情的执著，有时连你自己都觉得可怕。", dilemma: "你的深情有时会成为自己的枷锁。当感情逝去或受挫时，你会发现自己难以自拔。", solution: "学会在深情的的同时保持理性。爱不是占有，而是成全。", companions: [{ name: "白素贞", quote: "千年等一回。" }, { name: "祝英台", quote: "十八相送情切切，梁山伯与祝英台。" }, { name: "贾宝玉", quote: "这个妹妹我曾见过的。" }], comboNickname: "痴心情种", comboDesc: "你的用情至深让你在感情中无法自拔，同时也赋予了生命最绚烂的色彩。", shadow: "名士", shadowTitle: "爱情的理想主义者", shadowDesc: "你对爱情的理想化可能让你无法接受现实中的不完美。", quote: "曾经沧海难为水，除却巫山不是云。" }
+        };
+        
+        const app = createApp({
+            setup() {
+                const currentPage = ref('welcome');
+                const currentQuestionIndex = ref(0);
+                const answers = ref(Array(36).fill(null));
+                
+                const questions = ref(questionsData);
+                
+                const allAnswered = computed(() => {
+                    return answers.value.every(a => a !== null);
+                });
+                
+                const result = ref(null);
+                
+                const startTest = () => {
+                    currentPage.value = 'questionnaire';
+                };
+                
+                const selectAnswer = (idx) => {
+                    answers.value[currentQuestionIndex.value] = idx;
+                };
+                
+                const nextQuestion = () => {
+                    if (currentQuestionIndex.value < questions.value.length - 1) {
+                        currentQuestionIndex.value++;
+                    }
+                };
+                
+                const prevQuestion = () => {
+                    if (currentQuestionIndex.value > 0) {
+                        currentQuestionIndex.value--;
+                    }
+                };
+                
+                const calculateResult = () => {
+                    // 计分
+                    const scores = { "隐士": 0, "游侠": 0, "诤臣": 0, "名士": 0, "谪仙": 0, "情痴": 0 };
+                    
+                    answers.value.forEach((answerIdx, qIdx) => {
+                        if (answerIdx !== null) {
+                            const arch = questions.value[qIdx].archetype[answerIdx];
+                            scores[arch] += 4; // 选中的选项得4分
+                        }
+                    });
+                    
+                    // 排序获取主次原型
+                    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                    const primary = sorted[0][0];
+                    const secondary = sorted[1][0];
+                    
+                    // 生成结果
+                    result.value = {
+                        primary,
+                        secondary,
+                        ...archetypesData[primary],
+                        scores
+                    };
+                };
+                
+                const submitTest = () => {
+                    if (!allAnswered.value) return;
+                    calculateResult();
+                    currentPage.value = 'result';
+                    
+                    nextTick(() => {
+                        initRadarChart();
+                    });
+                };
+                
+                const initRadarChart = () => {
+                    const chartDom = document.getElementById('radarChart');
+                    if (!chartDom) return;
+                    
+                    const myChart = echarts.init(chartDom);
+                    const scores = result.value.scores;
+                    
+                    const option = {
+                        radar: {
+                            indicator: [
+                                { name: '隐士', max: 40 },
+                                { name: '游侠', max: 40 },
+                                { name: '诤臣', max: 40 },
+                                { name: '名士', max: 40 },
+                                { name: '谪仙', max: 40 },
+                                { name: '情痴', max: 40 }
+                            ],
+                            radius: '60%',
+                            axisName: {
+                                color: '#2c2416',
+                                fontSize: 14,
+                                fontFamily: 'Noto Serif SC'
+                            },
+                            splitArea: {
+                                areaStyle: {
+                                    color: ['rgba(201, 162, 39, 0.02)', 'rgba(201, 162, 39, 0.05)', 'rgba(201, 162, 39, 0.1)', 'rgba(201, 162, 39, 0.15)', 'rgba(201, 162, 39, 0.2)']
+                                }
+                            },
+                            axisLine: {
+                                lineStyle: { color: '#ccc' }
+                            },
+                            splitLine: {
+                                lineStyle: { color: '#ddd' }
+                            }
+                        },
+                        series: [{
+                            type: 'radar',
+                            data: [{
+                                value: [scores['隐士'], scores['游侠'], scores['诤臣'], scores['名士'], scores['谪仙'], scores['情痴']],
+                                name: '灵魂图谱',
+                                areaStyle: {
+                                    color: 'rgba(139, 0, 0, 0.3)'
+                                },
+                                lineStyle: {
+                                    color: '#8b0000',
+                                    width: 2
+                                },
+                                itemStyle: {
+                                    color: '#c9a227'
+                                }
+                            }]
+                        }]
+                    };
+                    
+                    myChart.setOption(option);
+                    
+                    window.addEventListener('resize', () => {
+                        myChart.resize();
+                    });
+                };
+                
+                return {
+                    currentPage,
+                    currentQuestionIndex,
+                    questions,
+                    answers,
+                    allAnswered,
+                    result,
+                    startTest,
+                    selectAnswer,
+                    nextQuestion,
+                    prevQuestion,
+                    submitTest
+                };
+            }
+        });
+        
+        app.mount('#app');
+    </script>
+</body>
+</html>
